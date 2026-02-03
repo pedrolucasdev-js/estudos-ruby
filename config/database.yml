@@ -1,0 +1,10 @@
+development:
+  url: <%= ENV.fetch("DATABASE_URL") %>
+
+test:
+  adapter: postgresql
+  database: salon_api_test
+  host: localhost
+
+production:
+  url: <%= ENV.fetch("DATABASE_URL") %>
