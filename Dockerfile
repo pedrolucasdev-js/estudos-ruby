@@ -60,8 +60,7 @@ RUN apt-get update -qq && \
       libyaml-dev \
       zlib1g \
       libffi7 \
-      curl \
-      postgresql-client && \
+      curl && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 # Copia gems compiladas e código
