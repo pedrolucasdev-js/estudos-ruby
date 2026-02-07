@@ -2,9 +2,7 @@ class Api::AppointmentsController < ApplicationController
 
   # GET /api/appointments?salon_id=xxx&date=xxxx
   def index
-    appointments = Appointment.where(salon_id: params[:salon_id])
-                              .where(date: params[:date])
-
+    appointments = Appointment.where(salon_id: params[:salon_id]).where(date: params[:date])
     render json: appointments
   end
 
