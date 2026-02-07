@@ -2,7 +2,7 @@ source "https://rubygems.org"
 
 ruby "3.4.8"
 
-
+gem 'rack-cors'
 # dotnet add your gem dependencies in this file
 gem "dotenv-rails", groups: [:development, :test]
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
