@@ -3,25 +3,22 @@ services:
     name: salon-api
     env: ruby
     plan: free
-    buildCommand: "./bin/rails db:prepare"
-    startCommand: "bundle exec puma -t 5:5 -p 3000"
+    buildCommand: "bundle install && bundle exec rails db:prepare"
+    startCommand: "bundle exec puma -C config/puma.rb"
     envVars:
       - key: DATABASE_URL
-        scope: shared
+        fromDatabase:
+          name: salon-api-db
+          property: connectionString
       - key: RAILS_MASTER_KEY
-        scope: secret
+        sync: false
       - key: RAILS_ENV
         value: production
-      - key: BUNDLE_WITHOUT
-        value: development:test
     autoDeploy: true
     healthCheckPath: /up
-    
+
   - type: pserv
     name: salon-api-db
-    ipAllowList:
-      - source: 0.0.0.0/0
-        description: everywhere
     plan: free
     postgresVersion: 15
     initialDatabase: salon_api_production
