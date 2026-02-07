@@ -1,64 +1,83 @@
 # syntax = docker/dockerfile:1
 
-# Make sure RUBY_VERSION matches the Ruby version in .ruby-version and Gemfile
+# Defina a versão do Ruby
 ARG RUBY_VERSION=3.4.8
 FROM registry.docker.com/library/ruby:$RUBY_VERSION-slim as base
 
-# Rails app lives here
+# Diretório do Rails
 WORKDIR /rails
 
-# Set production environment
+# Ambiente de produção e configuração do Bundler
 ENV RAILS_ENV="production" \
     BUNDLE_DEPLOYMENT="1" \
     BUNDLE_PATH="/usr/local/bundle" \
-    BUNDLE_WITHOUT="development"
+    BUNDLE_WITHOUT="development:test"
 
-
-# Throw-away build stage to reduce size of final image
+# -----------------------------
+# Stage de build (para compilar gems)
+# -----------------------------
 FROM base as build
 
-# Install packages needed to build gems
+# Instala pacotes necessários para compilar gems nativas
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential git libpq-dev libvips pkg-config
+    apt-get install --no-install-recommends -y \
+      build-essential \
+      git \
+      libpq-dev \
+      libvips \
+      pkg-config \
+      libyaml-dev \
+      zlib1g-dev \
+      libffi-dev
 
-# Install application gems
+# Copia Gemfile e Gemfile.lock e instala gems
 COPY Gemfile Gemfile.lock ./
 RUN bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
     bundle exec bootsnap precompile --gemfile
 
-# Copy application code
+# Copia o código da aplicação
 COPY . .
 
-# Precompile bootsnap code for faster boot times
+# Precompila bootsnap para acelerar boot do Rails
 RUN bundle exec bootsnap precompile app/ lib/
 
-# Adjust binfiles to be executable on Linux
+# Ajusta binários para Linux
 RUN chmod +x bin/* && \
     sed -i "s/\r$//g" bin/* && \
     sed -i 's/ruby\.exe$/ruby/' bin/*
 
-
-# Final stage for app image
+# -----------------------------
+# Stage final (imagem leve para produção)
+# -----------------------------
 FROM base
 
-# Install packages needed for deployment
+# Instala pacotes runtime
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libvips postgresql-client && \
-    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+    apt-get install --no-install-recommends -y \
+      curl \
+      libvips \
+      postgresql-client \
+      libyaml-dev \
+      zlib1g \
+      libffi7 && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
-# Copy built artifacts: gems, application
+# Copia gems compiladas e código da aplicação
 COPY --from=build /usr/local/bundle /usr/local/bundle
 COPY --from=build /rails /rails
 
-# Run and own only the runtime files as a non-root user for security
+# Cria usuário não-root e ajusta permissões
 RUN useradd rails --create-home --shell /bin/bash && \
     chown -R rails:rails db log storage tmp
+
 USER rails:rails
 
-# Entrypoint prepares the database.
+# Entrypoint (prepara DB)
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
-# Start the server by default, this can be overwritten at runtime
+# Porta do servidor
 EXPOSE 3000
+
+# Comando padrão
 CMD ["./bin/rails", "server"]
