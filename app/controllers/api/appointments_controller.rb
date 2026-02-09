@@ -2,8 +2,11 @@ class Api::AppointmentsController < ApplicationController
 
   # GET /api/appointments?salon_id=xxx&date=xxxx
   def index
-    appointments = Appointment.where(salon_id: params[:salon_id]).where(date: params[:date])
-    render json: appointments
+  appointments = Appointment.where(salon_id: params[:salon_id])
+
+  appointments = appointments.where(date: params[:date]) if params[:date]
+
+  render json: appointments
   end
 
   # GET /api/appointments/availability?salon_id=xxx&date=xxxx

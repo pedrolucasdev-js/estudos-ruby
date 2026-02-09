@@ -14,6 +14,14 @@ class Api::ServicesController < ApplicationController
         end
     end
 
+    # Delete /api/services/:id
+    # se usa destroy ao inves de delete para seguir a convenção RESTful do Rails
+    def destroy
+        service = Service.find(params[:id])
+        service.destroy
+        head :no_content 
+    end
+
     private 
     def service_params
         params.require(:service).permit(
