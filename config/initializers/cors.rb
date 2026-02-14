@@ -2,7 +2,7 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
     # URL LOCAL
     # origins "http://localhost:5173"
-    origins "http://localhost:5173", "https://salon-booking-frontend.onrender.com"
+    origins "http://localhost:5173", "https://estudos-ruby-1.onrender.com"
 
     resource "*",
       headers: :any,
